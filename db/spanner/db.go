@@ -30,7 +30,6 @@ import (
 	"github.com/pingcap/go-ycsb/pkg/prop"
 	"github.com/pingcap/go-ycsb/pkg/util"
 	"google.golang.org/grpc"
-	"google.golang.org/api/option/internaloption"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/magiconair/properties"
@@ -74,10 +73,9 @@ func (c spannerCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			option.WithEndpoint("http://localhost:15000"),
 			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 			option.WithoutAuthentication(),
-			internaloption.SkipDialSettingsValidation(),
 		}
 
-	client, err := spanner.NewClientWithConfig(ctx, dbName, spanner.ClientConfig{}, opts...)
+	client, err := spanner.NewClientWithConfig(ctx, dbName, spanner.ClientConfig{IsExperimentalHost: true}, opts...)
 	if err != nil {
 		return nil, err
 	}
