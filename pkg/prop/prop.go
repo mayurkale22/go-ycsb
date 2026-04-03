@@ -70,7 +70,7 @@ const (
 	RequestDistribution        = "requestdistribution"
 	RequestDistributionDefault = "uniform"
 	ZeroPadding                = "zeropadding"
-	ZeroPaddingDefault         = int64(1)
+	ZeroPaddingDefault         = int64(12)
 	MinScanLength              = "minscanlength"
 	MinScanLengthDefault       = int64(1)
 	MaxScanLength              = "maxscanlength"
@@ -99,7 +99,7 @@ const (
 	DebugPprofDefault = ":6060"
 
 	Verbose         = "verbose"
-	VerboseDefault  = false
+	VerboseDefault  = true
 	DropData        = "dropdata"
 	DropDataDefault = false
 
