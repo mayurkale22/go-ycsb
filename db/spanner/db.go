@@ -17,20 +17,21 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"os/user"
-	"path"
 	"regexp"
 	"strings"
 
 	"cloud.google.com/go/spanner"
 	database "cloud.google.com/go/spanner/admin/database/apiv1"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	adminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
 
 	"github.com/pingcap/go-ycsb/pkg/prop"
 	"github.com/pingcap/go-ycsb/pkg/util"
+	"google.golang.org/grpc"
+	"google.golang.org/api/option/internaloption"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/magiconair/properties"
 	"github.com/pingcap/go-ycsb/pkg/ycsb"
@@ -61,47 +62,26 @@ func (c spannerCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	d := new(spannerDB)
 	d.p = p
 
-	credentials := p.GetString(spannerCredentials, "")
-	if len(credentials) == 0 {
-		// no credentials provided, try using ~/.spanner/credentials.json"
-		usr, err := user.Current()
-		if err != nil {
-			return nil, err
-		}
-		credentials = path.Join(usr.HomeDir, ".spanner/credentials.json")
-	}
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentials)
-
 	ctx := context.Background()
-
-	adminClient, err := database.NewDatabaseAdminClient(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer adminClient.Close()
 
 	dbName := p.GetString(spannerDBName, "")
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("must provide a database like projects/xxxx/instances/xxxx/databases/xxx")
 	}
+	// client, err := spanner.NewClient(ctx, dbName)
 
-	d.verbose = p.GetBool(prop.Verbose, prop.VerboseDefault)
+	opts := []option.ClientOption{
+			option.WithEndpoint("http://localhost:15000"),
+			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+			option.WithoutAuthentication(),
+			internaloption.SkipDialSettingsValidation(),
+		}
 
-	_, err = d.createDatabase(ctx, adminClient, dbName)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := spanner.NewClient(ctx, dbName)
+	client, err := spanner.NewClientWithConfig(ctx, dbName, spanner.ClientConfig{}, opts...)
 	if err != nil {
 		return nil, err
 	}
 	d.client = client
-
-	if err = d.createTable(ctx, adminClient, dbName); err != nil {
-		return nil, err
-	}
-
 	return d, nil
 }
 
