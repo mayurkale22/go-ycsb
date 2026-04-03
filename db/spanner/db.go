@@ -215,8 +215,6 @@ func (db *spannerDB) CleanupThread(ctx context.Context) {
 }
 
 func (db *spannerDB) queryRows(ctx context.Context, stmt spanner.Statement, count int) ([]map[string][]byte, error) {
-	fmt.Printf("%s %v\n", stmt.SQL, stmt.Params)
-
 	iter := db.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
@@ -322,7 +320,9 @@ func (db *spannerDB) Insert(ctx context.Context, table string, key string, mutat
 	keys, values := createMutations(key, mutations)
 	m := spanner.InsertOrUpdate(table, keys, values)
 	_, err := db.client.Apply(ctx, []*spanner.Mutation{m})
-	fmt.Println(err.Error())
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	return err
 }
 
