@@ -215,6 +215,10 @@ func (db *spannerDB) CleanupThread(ctx context.Context) {
 }
 
 func (db *spannerDB) queryRows(ctx context.Context, stmt spanner.Statement, count int) ([]map[string][]byte, error) {
+	if db.verbose {
+		fmt.Printf("%s %v\n", stmt.SQL, stmt.Params)
+	}
+
 	iter := db.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
@@ -294,8 +298,6 @@ func (db *spannerDB) Scan(ctx context.Context, table string, startKey string, co
 }
 
 func createMutations(key string, mutations map[string][]byte) ([]string, []interface{}) {
-	// message := fmt.Sprintf("***** create mutations : %s\n", mutations)
-	// fmt.Println(message)
 	keys := make([]string, 0, 1+len(mutations))
 	values := make([]interface{}, 0, 1+len(mutations))
 	keys = append(keys, "YCSB_KEY")
@@ -320,16 +322,12 @@ func (db *spannerDB) Insert(ctx context.Context, table string, key string, mutat
 	keys, values := createMutations(key, mutations)
 	m := spanner.InsertOrUpdate(table, keys, values)
 	_, err := db.client.Apply(ctx, []*spanner.Mutation{m})
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 	return err
 }
 
 func (db *spannerDB) Delete(ctx context.Context, table string, key string) error {
 	m := spanner.Delete(table, spanner.Key{key})
 	_, err := db.client.Apply(ctx, []*spanner.Mutation{m})
-	
 	return err
 }
 
