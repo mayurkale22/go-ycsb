@@ -80,7 +80,7 @@ const (
 	ScanLengthDistributionDefault = "uniform"
 	// "ordered", "hashed"
 	InsertOrder                   = "insertorder"
-	InsertOrderDefault            = "hashed"
+	InsertOrderDefault            = "ordered"
 	HotspotDataFraction           = "hotspotdatafraction"
 	HotspotDataFractionDefault    = float64(0.2)
 	HotspotOpnFraction            = "hotspotopnfraction"
